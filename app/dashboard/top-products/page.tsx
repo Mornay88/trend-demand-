@@ -65,7 +65,7 @@ export default function TopProductsPage() {
     }
   }
 
-  const fetchTrendData = async (isRefresh = false) => {
+  const fetchTrendData = async (categoryForFetch?: string, isRefresh = false) => {
     try {
       if (isRefresh) {
         setRefreshing(true)
@@ -76,7 +76,8 @@ export default function TopProductsPage() {
         throw new Error("Python service URL not configured")
       }
 
-      const qp = selectedCategory && selectedCategory !== "All" ? `&category=${encodeURIComponent(selectedCategory)}` : ""
+      const category = categoryForFetch ?? selectedCategory ?? "All"
+      const qp = category && category !== "All" ? `&category=${encodeURIComponent(category)}` : ""
       const response = await fetch(`${pyServiceUrl}/trends/top-products?limit=10${qp}`)
       
       if (!response.ok) {
@@ -116,7 +117,7 @@ export default function TopProductsPage() {
 
     const initializeData = async () => {
       await fetchCategories()
-      const first = await fetchTrendData(false)
+      const first = await fetchTrendData(selectedCategory, false)
 
       // Check if data is stale and schedule refresh
       const lastUpdate = first?.last_data_update ?? null
@@ -192,11 +193,11 @@ export default function TopProductsPage() {
           <select
             className="bg-white/5 border border-white/10 rounded-md px-3 py-2 text-slate-200 focus:outline-none"
             value={selectedCategory}
-            onChange={async (e) => {
+            onChange={(e) => {
               const val = e.target.value
               setSelectedCategory(val)
               setLoading(true)
-              await fetchTrendData(false)
+              fetchTrendData(val, false)
             }}
           >
             {categories.map((c) => (
